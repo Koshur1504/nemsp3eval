@@ -9,6 +9,10 @@
     {
       "url": "http://localhost:7700",
       "description": "Development server"
+    },
+    {
+      "url": "https://nemsp3eval.onrender.com",
+      "description": "Production server"
     }
   ],
   "paths": {
