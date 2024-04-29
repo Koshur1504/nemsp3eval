@@ -1,0 +1,299 @@
+{
+  "openapi": "3.0.0",
+  "info": {
+    "title": "RBAC app",
+    "version": "1.0.0",
+    "description": "API for RBAC task management app"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:7700",
+      "description": "Development server"
+    }
+  ],
+  "paths": {
+    "/user": {
+      "get": {
+        "summary": "Get all the user ,(Admin level access required)",
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "tags": ["Users"],
+        "responses": {
+          "200": {
+            "description": "A list of users",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "users": {
+                      "type": "array",
+                      "items": { "$ref": "#/components/schemas/User" }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/user/{userID}": {
+      "get": {
+        "summary": "Get a single user by ID, (Admin access required)",
+        "tags": ["Users"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "name": "userID",
+            "required": true,
+            "description": "The ID of the user to retreive",
+            "schema": { "type": "string" }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "user found",
+            "content": {
+              "application/json": {
+                "schema": { "$ref": "#/components/schemas/User" }
+              }
+            }
+          },
+          "401": {
+            "description": "Un-Authorized"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user/login": {
+      "post": {
+        "summary": "Login user",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "email": {
+                    "type": "string",
+                    "description": "The email of the user"
+                  },
+                  "password": {
+                    "type": "string",
+                    "description": "The password of the user"
+                  }
+                },
+                "required": ["email", "password"]
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "User Registration successfull",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "msg": { "type": "string" },
+                    "accessToken": { "type": "string" }
+                  }
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user/logout": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Users"],
+        "security": [
+          {
+            "BearerAuth": []
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Logout successfull"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user/manage": {
+      "post": {
+        "summary": "Manage a user ,(Admin level access required)",
+        "tags": ["Users"],
+        "security": [{ "BearerAuth": [] }],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "id": { "type": "string" },
+                  "status": { "type": "string", "enum": ["enable", "disable"] }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Operation success message"
+          },
+          "400": {
+            "description": "Invalid ID"
+          },
+          "404": {
+            "description": "No user found"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    },
+    "/user/register": {
+      "post": {
+        "summary": "Register a new user",
+        "tags": ["Users"],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/User" }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User Registration successfull"
+          },
+          "500": {
+            "description": "Internal server error"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "securitySchemes": {
+      "BearerAuth": {
+        "type": "http",
+        "scheme": "bearer",
+        "bearerFormat": "JWT"
+      }
+    },
+    "schemas": {
+      "User": {
+        "type": "object",
+        "properties": {
+          "_id": {
+            "type": "string",
+            "description": "This is an auto-generated unique id"
+          },
+          "username": {
+            "type": "string",
+            "description": "The user name of the user"
+          },
+          "email": {
+            "type": "string",
+            "description": "The email of the user"
+          },
+          "password": {
+            "type": "string",
+            "description": "The password of the user"
+          },
+          "role": {
+            "type": "string",
+            "enum": ["admin", "manager", "member"],
+            "description": "is an enum and can have values as admin, manager and member",
+            "default": "member"
+          },
+          "status": {
+            "type": "string",
+            "default": "enable",
+            "enum": ["enable", "disable"],
+            "description": "is an enum and can values as enable or disable"
+          }
+        },
+        "required": ["username", "email", "password"]
+      },
+      "Task": {
+        "type": "object",
+        "properties": {
+          "title": { "type": "string", "description": "title of the task" },
+          "description": {
+            "type": "string",
+            "description": "description of the task"
+          },
+          "deadline": {
+            "type": "string",
+            "description": "deadline of the task",
+            "format": "date-time"
+          },
+          "priority": {
+            "type": "string",
+            "description": "is an enum and can have values as high or normal",
+            "enum": ["high", "normal"],
+            "default": "normal"
+          },
+          "dependencies": {
+            "type": "array",
+            "description": "is an array containing id's of all the dependent tasks"
+          },
+          "recurring": {
+            "type": "boolean",
+            "description": "detemines if a task is recurring or not",
+            "default": "false"
+          },
+          "deleteMarked": {
+            "type": "boolean",
+            "description": "detemines if a task is marked as deleted or not",
+            "default": "false"
+          },
+          "username": {
+            "type": "string",
+            "description": "username of the user the task is assigned to and will be automatically set",
+            "default": "userID of the logged in user"
+          },
+          "userID": {
+            "type": "string",
+            "description": "userID of the user the task is assigned to and will be automatically set",
+            "default": "userID of the logged in user"
+          },
+          "createdAt": {
+            "type": "string",
+            "description": "Time of creation",
+            "format": "date-time"
+          }
+        },
+        "required": ["title"]
+      }
+    }
+  }
+}
